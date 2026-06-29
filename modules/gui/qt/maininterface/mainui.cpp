@@ -52,6 +52,9 @@
 #include "util/textureproviderobserver.hpp"
 #include "util/textureproviderindirection.hpp"
 #include "util/sgmanipulator.hpp"
+#include "util/timeline_preview_controller.hpp"
+#include "util/thumbnail_cache.hpp"
+#include "util/thumbnail_generator.hpp"
 
 #include "dialogs/help/aboutmodel.hpp"
 #include "dialogs/dialogs_provider.hpp"
@@ -241,6 +244,10 @@ void MainUI::registerQMLTypes()
 #ifdef UPDATE_CHECK
         qmlRegisterSingletonInstance<UpdateModel>( uri, versionMajor, versionMinor, "UpdateModel", m_mainCtx->getUpdateModel() );
 #endif
+
+        qmlRegisterSingletonInstance<TimelinePreviewController>(uri, versionMajor, versionMinor,
+            "TimelinePreview",
+            new TimelinePreviewController(m_intf, m_intf->p_mainPlayerController, m_mainCtx));
 
         qmlRegisterModule(uri, versionMajor, versionMinor);
         qmlProtectModule(uri, versionMajor);

@@ -216,9 +216,91 @@ T.ProgressBar {
             if (hovered) {
                 if(Player.hasChapters)
                     control._isSeekPointsShown = true
+
+                // Activate timeline preview
+                TimelinePreview.hovering = true
+                TimelinePreview.hoverPosition = control._tooltipPosition
             } else {
                 if(Player.hasChapters)
                     seekpointTimer.restart()
+
+                // Deactivate timeline preview
+                TimelinePreview.hovering = false
+            }
+        }
+
+        onPointChanged: {
+            if (hovered && TimelinePreview.enabled) {
+                const pos = Helpers.clamp(point.position.x, 0, control.width)
+                TimelinePreview.hoverPosition = pos / control.width
+            }
+        }
+    }
+
+    // Timeline preview popup - YouTube-style thumbnail preview on hover
+    TimelinePreviewPopup {
+        id: timelinePreview
+
+        previewEnabled: TimelinePreview.enabled
+        thumbnailSource: TimelinePreview.thumbnailUrl
+        timestamp: TimelinePreview.timestampText
+        chapterTitle: TimelinePreview.chapterTitle
+        hasChapter: TimelinePreview.hasChapter
+        // Latch: use live cursor position only during active hover.
+        // On exit, keep the last hover position so the popup's x
+        // doesn't snap to the playback cursor during the fade-out.
+        //
+        // NOTE: Must track TimelinePreview.hoverPosition (C++ property
+        // that holds the last hover position) instead of
+        // control._tooltipPosition which falls back to the playback
+        // cursor position when hovering stops.
+        property real _lastHoverPos: 0
+
+        Connections {
+            target: TimelinePreview
+            function onHoverPositionChanged() {
+                _lastHoverPos = TimelinePreview.hoverPosition
+            }
+        }
+
+        previewPosition: TimelinePreview.hovering ? control._tooltipPosition : _lastHoverPos
+        sliderItem: control
+
+        // Cache whether the timeline has a valid length so the visible
+        // binding doesn't flicker when Player.length briefly invalidates
+        // during pipeline reconfiguration (e.g. fullscreen toggle).
+        property bool _timelineReady: Player.length.valid() && Player.length.toSeconds() > 0
+
+        // Show when hovering and preview is enabled
+        visible: TimelinePreview.enabled && TimelinePreview.hovering
+                 && Player.playingState !== Player.PLAYING_STATE_STOPPED
+                 && _timelineReady
+
+        // Update media length when it changes
+        function updateMediaLength() {
+            if (Player.length.valid()) {
+                TimelinePreview.mediaLength = Player.length.toSeconds()
+                _timelineReady = true
+            } else {
+                _timelineReady = false
+            }
+        }
+
+        Component.onCompleted: {
+            updateMediaLength()
+        }
+
+        Connections {
+            target: Player
+            function onLengthChanged() {
+                timelinePreview.updateMediaLength()
+            }
+            function onInputChanged() {
+                if (Player.url && Player.url.toString() !== "") {
+                    // Update media hash when input changes
+                    const urlStr = Player.url.toString()
+                    TimelinePreview.onMediaUrlChanged(urlStr)
+                }
             }
         }
     }

@@ -25,6 +25,14 @@ been downloaded **billions** of times.
 **libVLC**, the engine is released under the LGPLv2 *(or later)* license. \
 This allows embedding the engine in 3rd party applications, while letting them to be licensed under other licenses.
 
+# What's New
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
+
+Key highlights:
+
+- **Timeline Thumbnail Preview** — YouTube-style video thumbnail previews on the seek bar hover (VLC 4.0)
+
 # Platforms
 
 VLC is available for the following platforms:
@@ -48,6 +56,231 @@ Not all platforms receive the same amount of care, due to our limited resources.
 **Nota Bene**: The [Android app](https://code.videolan.org/videolan/vlc-android/) and
 the [iOS app](https://code.videolan.org/videolan/vlc-ios/) are located in different repositories
 than the main one.
+
+# Building from Source
+
+## Prerequisites
+
+### Required Build Tools
+
+- **Compiler**: C11/C17 compiler (GCC >= 5 or Clang >= 3.4) with C++17 support (G++ >= 7 or Clang++ >= 5)
+- **Build System**: Meson >= 1.1.0 and Ninja (preferred), or GNU Autotools (autoconf, automake, libtool, make)
+- **pkg-config**
+- **GNU gettext** (for translations)
+- **flex** and **bison** (for CSS/WebVTT parsing)
+- **Rust nightly toolchain** (optional, for Rust modules)
+
+### Required Development Libraries
+
+The following libraries are required for a typical build:
+
+- zlib
+- libiconv
+- pthreads
+- Lua (>= 5.1, used for interfaces and scripting)
+- libxml2 (XML parsing)
+- gettext (internationalization)
+
+### Optional but Common Dependencies
+
+| Library | Purpose |
+|---------|---------|
+| FFmpeg (libavcodec, libavformat, libavutil, libswscale) | Video/audio codecs and container support |
+| Qt 6 (qt6-base, qt6-declarative, qt6-shadertools) | Modern GUI (recommended) |
+| GnuTLS | HTTPS/TLS support |
+| libaom, libdav1d | AV1 codec support |
+| libvpx | VP8/VP9 codec support |
+| libopus, libvorbis, libogg | Audio codec support |
+| libass | ASS/SSA subtitle rendering |
+| freetype2, fontconfig, harfbuzz, fribidi | Text rendering |
+| libbluray | Blu-ray playback |
+| libdvdnav, libdvdread | DVD playback |
+| libplacebo | Advanced video filtering |
+| libgcrypt | Cryptography |
+| ALSA, PulseAudio, PipeWire | Linux audio output |
+| X11, XCB, Wayland | Display output on Linux |
+| dbus | D-Bus integration |
+| udev | Device discovery |
+| libupnp | UPnP service discovery |
+
+### Installing Prerequisites
+
+**Debian / Ubuntu**:
+```sh
+sudo apt install build-essential meson ninja-build pkg-config gettext flex bison \
+  liblua5.2-dev libxml2-dev libfreetype-dev libfontconfig-dev libharfbuzz-dev \
+  libass-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+  libpostproc-dev libplacebo-dev libgcrypt-dev libssl-dev libdvdnav-dev \
+  libdvdread-dev libbluray-dev libvpx-dev libopus-dev libvorbis-dev \
+  libogg-dev libtheora-dev libaom-dev libdav1d-dev libxcb-shm0-dev \
+  libxcb-xv0-dev libx11-dev libxcb-composite0-dev libxcb-randr0-dev \
+  libxcb-xfixes0-dev libwayland-dev libpulse-dev libpipewire-0.3-dev \
+  libalsa2-dev libdbus-1-dev libsystemd-dev libudev-dev libupnp-dev \
+  qt6-base-dev qt6-declarative-dev qt6-shadertools-dev \
+  libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev || echo "Check individual package names for your distribution"
+```
+
+**Fedora / RHEL**:
+```sh
+sudo dnf install meson ninja-build gcc gcc-c++ make pkgconfig gettext-devel flex bison \
+  lua-devel libxml2-devel freetype-devel fontconfig-devel harfbuzz-devel \
+  libass-devel ffmpeg-devel libplacebo-devel libgcrypt-devel \
+  libdvdnav-devel libdvdread-devel libbluray-devel libvpx-devel \
+  opus-devel libvorbis-devel libogg-devel libtheora-devel aom-devel \
+  dav1d-devel libxcb-devel libX11-devel wayland-devel \
+  pulseaudio-libs-devel pipewire-devel alsa-lib-devel \
+  dbus-devel systemd-devel libudev-devel \
+  qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtshadertools-devel \
+  mesa-libGL-devel mesa-libGLES-devel mesa-libEGL-devel
+```
+
+**macOS** (using Homebrew):
+```sh
+brew install meson ninja pkg-config gettext flex bison lua libxml2 freetype \
+  fontconfig harfbuzz libass ffmpeg libplacebo gcrypt libdvdnav libdvdread \
+  libbluray libvpx opus libvorbis libogg aom dav1d qt glew
+```
+
+**Windows** (using contribs from VLC):
+```sh
+# Pre-built contribs are available; see:
+# https://wiki.videolan.org/Win32Compile
+```
+
+## Building with Meson (Recommended)
+
+VLC 4.0 uses Meson as the primary build system. It is still experimental but recommended for new work.
+
+### Quick Start
+
+```sh
+# First-time setup
+meson setup builddir
+
+# Build (incremental, fast for repeated builds)
+meson compile -C builddir
+
+# Install (optional)
+meson install -C builddir
+```
+
+> **Tip:** After editing code (but not `meson.build`), you only need to run `meson compile -C builddir` — no need to re-run `meson setup`. If you edit `meson.build`, run `meson setup --reconfigure builddir` first.
+
+### Common Meson Options
+
+```sh
+# Enable debug build
+meson setup builddir -Ddebug=true
+
+# Enable extra compiler checks
+meson setup builddir -Dextra_checks=true
+
+# Enable tests (needed to build test executables)
+meson setup builddir -Dtests=enabled
+
+# Enable Rust modules (experimental)
+meson setup builddir -Drust=enabled
+
+# Disable Qt GUI (e.g., for headless/server use)
+meson setup builddir -Dqt=disabled
+
+# See all options
+meson configure builddir
+```
+
+### Running the Built Binary
+
+After building, you can run VLC directly from the build directory:
+
+```sh
+./builddir/bin/vlc
+# or
+./builddir/src/vlc
+```
+
+### Quick Rebuild (Qt plugin only)
+
+After making changes to Qt GUI code, you can rebuild just the Qt plugin for faster iteration:
+
+```sh
+ninja -C builddir modules/libqt_plugin.so
+```
+
+This is much faster than a full rebuild and is sufficient for testing UI changes.
+
+## Building with Autotools (Legacy)
+
+VLC also maintains the traditional autotools-based build system:
+
+```sh
+# If building from Git, first generate the configure script
+./bootstrap
+
+# Configure
+./configure
+
+# Build
+make -j$(nproc)
+
+# Install (optional)
+sudo make install
+```
+
+### Common Autotools Options
+
+```sh
+# Debug build
+./configure --enable-debug
+
+# Enable all optimizations (for production)
+./configure --enable-optimizations
+
+# Disable Qt GUI
+./configure --disable-qt
+
+# Enable Rust modules
+./configure --enable-rust
+
+# See all options
+./configure --help
+```
+
+## Running Tests
+
+### With Meson
+
+```sh
+# Configure with tests enabled
+meson setup builddir -Dtests=enabled
+ninja -C builddir
+
+# Run all tests
+meson test -C builddir
+
+# Run a specific test suite
+meson test -C builddir --suite test
+
+# Run a specific test
+meson test -C builddir test_libvlc_core
+
+# Run tests with verbose output
+meson test -C builddir -v
+```
+
+### With Autotools
+
+```sh
+# Build and run all tests
+make check
+
+# Build test programs without running them
+make check_programs
+
+# Run only player-related tests
+make checkplayer
+```
+
+Note: Some tests require media sample files and may need to be run from the build directory.
 
 # Contributing & Community
 

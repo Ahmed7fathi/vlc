@@ -465,6 +465,23 @@ vlc_module_begin ()
 
     add_string( "qt-accent-color", "default", ACCENT_COLOR_TEXT, ACCENT_COLOR_LONGTEXT )
 
+    // Timeline preview settings
+    add_bool( "timeline-thumbnail-enabled", true,
+              N_("Enable timeline thumbnail preview"),
+              N_("Show video thumbnail previews when hovering over the seek bar.") )
+
+    add_integer_with_range( "timeline-thumbnail-interval", 5, 1, 30,
+              N_("Timeline thumbnail interval (seconds)"),
+              N_("Interval between thumbnails on the timeline seek bar, in seconds.") )
+
+    add_integer_with_range( "timeline-thumbnail-width", 320, 80, 640,
+              N_("Timeline thumbnail width"),
+              N_("Width of the timeline thumbnail preview in pixels.") )
+
+    add_integer_with_range( "timeline-thumbnail-cache-size", 500, 50, 5000,
+              N_("Timeline thumbnail cache size (MB)"),
+              N_("Maximum size of the thumbnail cache in megabytes.") )
+
     cannot_unload_broken_library()
 
     add_submodule ()

@@ -63,3 +63,9 @@ static-lib/
 !buildsystem/
 !build.rs
 !extras/package/apple/build.sh
+
+# Ignore sample video files
+sampels/
+
+# Ignore local development helper scripts
+run-vlc.sh
