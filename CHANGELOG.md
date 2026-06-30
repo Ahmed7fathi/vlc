@@ -39,6 +39,7 @@ Enhanced the seek bar (`SliderBar.qml`) with a modern, interactive design:
   - **Idle** (10dp) — shows current playback position at all times
   - **Hover** (16dp) — grows when hovering over the bar
   - **Active** (22dp) — largest when dragging or interacting
+- **Glow effect** — A soft circular glow aura (2.2× the handle size) fades in behind the handle on hover/drag (opacity 0.2/0.25) and fades out when idle, matching the handle's size transitions.
 - **Visual polish** — Added white border for contrast on any background and an inner highlight ring for a refined look.
 - **Cursor feedback** — Cursor changes to a pointing hand (`Qt.PointingHandCursor`) when hovering over or dragging the seek bar.
 

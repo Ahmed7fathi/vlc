@@ -651,6 +651,74 @@ T.ProgressBar {
         }
     }
 
+    // Glow aura behind the handle dot (defined before handle for correct z-order)
+    Rectangle {
+        id: handleGlow
+
+        readonly property real _glowIdleSize:   VLCStyle.dp(10, VLCStyle.scale) * 2.2
+        readonly property real _glowHoverSize:  VLCStyle.dp(16, VLCStyle.scale) * 2.2
+        readonly property real _glowActiveSize: VLCStyle.dp(22, VLCStyle.scale) * 2.2
+
+        x: (control.visualPosition * control.availableWidth) - width / 2
+        y: (control._visualHeight - height) / 2
+
+        implicitWidth: handleGlow._glowIdleSize
+        implicitHeight: handleGlow._glowIdleSize
+        radius: width / 2
+        color: theme.fg.primary
+        opacity: 0.0
+
+        Behavior on opacity {
+            NumberAnimation { duration: VLCStyle.duration_short; easing.type: Easing.InOutSine }
+        }
+
+        states: [
+            State {
+                name: "idle"
+                PropertyChanges {
+                    target: handleGlow
+                    implicitWidth: _glowIdleSize
+                    implicitHeight: _glowIdleSize
+                    opacity: 0.0
+                }
+            },
+            State {
+                name: "hover"
+                PropertyChanges {
+                    target: handleGlow
+                    implicitWidth: _glowHoverSize
+                    implicitHeight: _glowHoverSize
+                    opacity: 0.2
+                }
+            },
+            State {
+                name: "active"
+                PropertyChanges {
+                    target: handleGlow
+                    implicitWidth: _glowActiveSize
+                    implicitHeight: _glowActiveSize
+                    opacity: 0.25
+                }
+            }
+        ]
+
+        state: dragHandler.active || fsm._state === fsm.fsmHeld
+               ? "active"
+               : (hoverHandler.hovered || control.visualFocus)
+                 ? ((control._currentChapterHovered && Player.hasChapters) ? "active" : "hover")
+                 : "idle"
+
+        transitions: [
+            Transition {
+                NumberAnimation {
+                    properties: "implicitWidth,implicitHeight"
+                    duration: VLCStyle.duration_short
+                    easing.type: Easing.InOutSine
+                }
+            }
+        ]
+    }
+
     // Always-visible circular handle dot at current position
     Rectangle {
         id: sliderHandle
