@@ -28,6 +28,20 @@ A new feature that shows video thumbnail previews when hovering over the seek ba
 - **Build instructions:**
   - Updated `README.md` with comprehensive build/run instructions including quick rebuild tips for the Qt plugin.
 
+### Changed
+
+#### Seek Bar Redesign (hover expansion, circular handle, cursor feedback)
+
+Enhanced the seek bar (`SliderBar.qml`) with a modern, interactive design:
+
+- **Hover expansion** — The seek bar track smoothly animates from 5dp to 10dp height when hovering (configurable `_barExpandFactor` of 2.0), with a subtle `InOutSine` easing.
+- **Circular grab handle** — Replaced the previous hidden-on-idle rectangular handle with an always-visible circular dot that has three distinct sizes:
+  - **Idle** (10dp) — shows current playback position at all times
+  - **Hover** (16dp) — grows when hovering over the bar
+  - **Active** (22dp) — largest when dragging or interacting
+- **Visual polish** — Added white border for contrast on any background and an inner highlight ring for a refined look.
+- **Cursor feedback** — Cursor changes to a pointing hand (`Qt.PointingHandCursor`) when hovering over or dragging the seek bar.
+
 #### Key design decisions:
 
 - **Single QML Image element** — Uses QML's built-in async image loading which keeps the old pixmap displayed until the new one is decoded, avoiding flicker/flash.

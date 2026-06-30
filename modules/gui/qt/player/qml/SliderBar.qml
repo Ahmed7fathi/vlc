@@ -45,6 +45,20 @@ T.ProgressBar {
     property color backgroundColor: theme.bg.primary
     property real touchHandlerMargin: VLCStyle.touchHandlerMargin
 
+    // Animated bar height for hover expansion
+    property real _visualHeight: control.barHeight
+    Behavior on _visualHeight {
+        NumberAnimation { duration: VLCStyle.duration_short; easing.type: Easing.InOutSine }
+    }
+
+    readonly property real _barExpandFactor: 2.0
+
+    function _updateVisualHeight() {
+        control._visualHeight = (hoverHandler.hovered || dragHandler.active || fsm._state === fsm.fsmHeld)
+            ? control.barHeight * control._barExpandFactor
+            : control.barHeight
+    }
+
     Keys.onRightPressed: Player.jumpFwd()
     Keys.onLeftPressed: Player.jumpBwd()
 
@@ -212,6 +226,8 @@ T.ProgressBar {
     HoverHandler {
         id: hoverHandler
 
+        cursorShape: Qt.PointingHandCursor
+
         onHoveredChanged: () => {
             if (hovered) {
                 if(Player.hasChapters)
@@ -227,6 +243,8 @@ T.ProgressBar {
                 // Deactivate timeline preview
                 TimelinePreview.hovering = false
             }
+
+            control._updateVisualHeight()
         }
 
         onPointChanged: {
@@ -325,12 +343,16 @@ T.ProgressBar {
                     // NOTE: Point is still valid at this point.
                     fsm.releaseControl(point.position.x / control.width, point.modifiers === Qt.ShiftModifier)
                 }
+
+                control._updateVisualHeight()
             }
         }
 
         DragHandler {
             id: dragHandler
             acceptedButtons: Qt.LeftButton
+
+            cursorShape: Qt.PointingHandCursor
 
             // Make it easier to drag with touch screen:
             margin: MainCtx.usingTouch ? control.touchHandlerMargin : 0
@@ -353,6 +375,8 @@ T.ProgressBar {
                 } else {
                     fsm.releaseControl( centroid.position.x / control.width, centroid.modifiers === Qt.ShiftModifier)
                 }
+
+                control._updateVisualHeight()
             }
 
             onCentroidChanged: {
@@ -410,8 +434,11 @@ T.ProgressBar {
             id: sliderRect
             visible: !Player.hasChapters
             color: control.backgroundColor
-            anchors.fill: parent
-            radius: implicitHeight
+            width: parent.width
+            height: control._visualHeight
+            radius: height / 2
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: (parent.height - height) / 2
         }
 
         Repeater {
@@ -508,8 +535,10 @@ T.ProgressBar {
             width: control.visualPosition * parent.width
             visible: !Player.hasChapters
             color: theme.fg.primary
-            height: control.barHeight
-            radius: control._seekPointsRadius
+            height: control._visualHeight
+            radius: height / 2
+            x: 0
+            y: (parent.height - height) / 2
         }
 
         Rectangle {
@@ -521,10 +550,11 @@ T.ProgressBar {
             property bool display: false
             property bool buffering: Player.buffering > 0 && Player.buffering < 1
 
-            height: control.barHeight
+            height: control._visualHeight
             opacity: 0.4
             color: theme.fg.neutral //FIXME buffer color ?
-            radius: control.barHeight
+            radius: height / 2
+            y: (parent.height - height) / 2
 
             Timer {
                 id: bufferingTimer
@@ -621,57 +651,81 @@ T.ProgressBar {
         }
     }
 
+    // Always-visible circular handle dot at current position
     Rectangle {
         id: sliderHandle
 
-        property int _size: control.barHeight * 3
+        readonly property real _idleSize: VLCStyle.dp(10, VLCStyle.scale)
+        readonly property real _hoverSize: VLCStyle.dp(16, VLCStyle.scale)
+        readonly property real _activeSize: VLCStyle.dp(22, VLCStyle.scale)
 
         x: (control.visualPosition * control.availableWidth) - width / 2
-        y: (control.barHeight - height) / 2
+        y: (control._visualHeight - height) / 2
 
-        implicitWidth: sliderHandle._size
-        implicitHeight: sliderHandle._size
-        radius: VLCStyle.margin_small
+        implicitWidth: sliderHandle._idleSize
+        implicitHeight: sliderHandle._idleSize
+        radius: width / 2
         color: theme.fg.primary
 
-        transitions: [
-            Transition {
-                to: "hidden"
-                SequentialAnimation {
-                    NumberAnimation {
-                        target: sliderHandle; properties: "implicitWidth,implicitHeight"
-                        to: 0
-                        duration: VLCStyle.duration_short; easing.type: Easing.OutSine
-                    }
-                    PropertyAction { target: sliderHandle; property: "visible"; value: false; }
+        // White border for contrast on any background
+        border.width: VLCStyle.dp(2, VLCStyle.scale)
+        border.color: theme.bg.primary
+
+        // Subtle inner highlight for a polished look
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: VLCStyle.dp(2, VLCStyle.scale)
+            radius: width / 2
+            color: "transparent"
+            border.width: VLCStyle.dp(1, VLCStyle.scale)
+            border.color: Qt.rgba(1, 1, 1, 0.35)
+            visible: parent.width > anchors.margins * 2 + 2
+        }
+
+        states: [
+            State {
+                name: "idle"
+                PropertyChanges {
+                    target: sliderHandle
+                    implicitWidth: _idleSize
+                    implicitHeight: _idleSize
+                    border.width: VLCStyle.dp(2, VLCStyle.scale)
                 }
             },
-            Transition {
-                to: "visible"
-                SequentialAnimation {
-                    PropertyAction { target: sliderHandle; property: "visible"; value: true; }
-                    NumberAnimation {
-                        target: sliderHandle; properties: "implicitWidth,implicitHeight"
-                        to: sliderHandle._size
-                        duration: VLCStyle.duration_short; easing.type: Easing.InSine
-                    }
+            State {
+                name: "hover"
+                PropertyChanges {
+                    target: sliderHandle
+                    implicitWidth: _hoverSize
+                    implicitHeight: _hoverSize
+                    border.width: VLCStyle.dp(2.5, VLCStyle.scale)
                 }
             },
-            Transition {
-                to: "visibleLarge"
-                SequentialAnimation {
-                    PropertyAction { target: sliderHandle; property: "visible"; value: true; }
-                    NumberAnimation {
-                        target: sliderHandle; properties: "implicitWidth,implicitHeight"
-                        to: sliderHandle._size * (0.8 * control._hoveredScalingFactor)
-                        duration: VLCStyle.duration_short; easing.type: Easing.InSine
-                    }
+            State {
+                name: "active"
+                PropertyChanges {
+                    target: sliderHandle
+                    implicitWidth: _activeSize
+                    implicitHeight: _activeSize
+                    border.width: VLCStyle.dp(3, VLCStyle.scale)
                 }
             }
         ]
 
-        state: (hoverHandler.hovered || control.visualFocus)
-               ? ((control._currentChapterHovered || (Player.hasChapters && fsm._state === fsm.fsmHeld)) ? "visibleLarge" : "visible")
-               : "hidden"
+        state: dragHandler.active || fsm._state === fsm.fsmHeld
+               ? "active"
+               : (hoverHandler.hovered || control.visualFocus)
+                 ? ((control._currentChapterHovered && Player.hasChapters) ? "active" : "hover")
+                 : "idle"
+
+        transitions: [
+            Transition {
+                NumberAnimation {
+                    properties: "implicitWidth,implicitHeight,border.width"
+                    duration: VLCStyle.duration_short
+                    easing.type: Easing.InOutSine
+                }
+            }
+        ]
     }
 }
