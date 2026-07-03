@@ -48,8 +48,8 @@ DownloadDialog::DownloadDialog(qt_intf_t* p_intf, const QString& initialUrl,
 {
     setWindowTitle(tr("Download Media"));
     setAttribute(Qt::WA_DeleteOnClose);
-    setMinimumSize(520, 500);
-    resize(520, 500);
+    setMinimumSize(880, 900);
+    resize(880, 900);
 
     buildUi();
 
@@ -62,27 +62,42 @@ DownloadDialog::DownloadDialog(qt_intf_t* p_intf, const QString& initialUrl,
 void DownloadDialog::buildUi()
 {
     auto* mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(16, 16, 16, 16);
-    mainLayout->setSpacing(12);
+    mainLayout->setContentsMargins(32, 28, 32, 28);
+    mainLayout->setSpacing(20);
 
     // ── Title ────────────────────────────────────────────────────────────
     auto* titleLabel = new QLabel(tr("Download Media"));
     QFont titleFont = titleLabel->font();
-    titleFont.setPointSize(titleFont.pointSize() + 6);
+    titleFont.setPointSize(titleFont.pointSize() + 10);
     titleFont.setBold(true);
     titleLabel->setFont(titleFont);
     mainLayout->addWidget(titleLabel);
 
     // ── URL Input ────────────────────────────────────────────────────────
     auto* urlLayout = new QHBoxLayout();
+    urlLayout->setSpacing(8);
     m_urlField = new QLineEdit();
+    QFont urlFont = m_urlField->font();
+    urlFont.setPointSize(urlFont.pointSize() + 2);
+    m_urlField->setFont(urlFont);
     m_urlField->setPlaceholderText(tr("Paste a YouTube or media URL here..."));
-    m_urlField->setMinimumHeight(32);
-    urlLayout->addWidget(m_urlField);
+    m_urlField->setMinimumHeight(44);
+    urlLayout->addWidget(m_urlField, 1);
 
     m_analyzeBtn = new QPushButton(tr("Analyze"));
-    m_analyzeBtn->setMinimumHeight(32);
+    m_analyzeBtn->setMinimumHeight(44);
+    m_analyzeBtn->setMinimumWidth(120);
     m_analyzeBtn->setDefault(true);
+    QFont btnFont = m_analyzeBtn->font();
+    btnFont.setPointSize(btnFont.pointSize() + 1);
+    btnFont.setBold(true);
+    m_analyzeBtn->setFont(btnFont);
+    m_analyzeBtn->setCursor(Qt::PointingHandCursor);
+    m_analyzeBtn->setStyleSheet(
+        "QPushButton { background-color: #1565c0; color: white; font-weight: bold; "
+        "padding: 8px 24px; border-radius: 4px; }"
+        "QPushButton:hover { background-color: #1976d2; }"
+        "QPushButton:disabled { background-color: #ccc; color: #888; }");
     urlLayout->addWidget(m_analyzeBtn);
     mainLayout->addLayout(urlLayout);
 
@@ -93,13 +108,16 @@ void DownloadDialog::buildUi()
     m_progressBar = new QProgressBar();
     m_progressBar->setRange(0, 0); // indeterminate initially
     m_progressBar->setTextVisible(false);
-    m_progressBar->setFixedHeight(6);
+    m_progressBar->setFixedHeight(10);
     m_progressBar->hide();
     mainLayout->addWidget(m_progressBar);
 
     // ── Progress label (speed/ETA shown during download) ──────────────────
     m_progressLabel = new QLabel();
-    m_progressLabel->setStyleSheet("color: #666; font-size: 11px;");
+    QFont progressFont = m_progressLabel->font();
+    progressFont.setPointSize(progressFont.pointSize() + 1);
+    m_progressLabel->setFont(progressFont);
+    m_progressLabel->setStyleSheet("color: #555;");
     m_progressLabel->setAlignment(Qt::AlignCenter);
     m_progressLabel->hide();
     mainLayout->addWidget(m_progressLabel);
@@ -107,8 +125,8 @@ void DownloadDialog::buildUi()
     // ── Error label (shown when analysis fails) ───────────────────────────
     m_errorLabel = new QLabel();
     m_errorLabel->setStyleSheet(
-        "QLabel { color: #e53935; font-weight: bold; padding: 8px; "
-        "background-color: #fce4ec; border-radius: 4px; }");
+        "QLabel { color: #c62828; font-weight: bold; padding: 12px; "
+        "background-color: #ffebee; border-radius: 6px; font-size: 13px; }");
     m_errorLabel->setWordWrap(true);
     m_errorLabel->hide();
     mainLayout->addWidget(m_errorLabel);
@@ -124,35 +142,56 @@ void DownloadDialog::buildUi()
     m_infoSection->hide();
     auto* infoLayout = new QVBoxLayout(m_infoSection);
     infoLayout->setContentsMargins(0, 0, 0, 0);
-    infoLayout->setSpacing(6);
+    infoLayout->setSpacing(8);
 
     m_titleLabel = new QLabel();
     QFont infoFont = m_titleLabel->font();
-    infoFont.setPointSize(infoFont.pointSize() + 2);
+    infoFont.setPointSize(infoFont.pointSize() + 4);
     infoFont.setBold(true);
     m_titleLabel->setFont(infoFont);
     m_titleLabel->setWordWrap(true);
     infoLayout->addWidget(m_titleLabel);
 
+    // Metadata row (duration · uploader)
+    auto* metaLayout = new QHBoxLayout();
+    metaLayout->setSpacing(16);
+
     m_durationLabel = new QLabel();
-    m_durationLabel->setStyleSheet("color: gray;");
-    infoLayout->addWidget(m_durationLabel);
+    QFont metaFont = m_durationLabel->font();
+    metaFont.setPointSize(metaFont.pointSize() + 1);
+    m_durationLabel->setFont(metaFont);
+    m_durationLabel->setStyleSheet("color: #777;");
+    metaLayout->addWidget(m_durationLabel);
+
+    auto* metaSep = new QLabel(QStringLiteral("·"));
+    metaSep->setStyleSheet("color: #ccc;");
+    metaLayout->addWidget(metaSep);
 
     m_uploaderLabel = new QLabel();
-    m_uploaderLabel->setStyleSheet("color: gray;");
-    infoLayout->addWidget(m_uploaderLabel);
+    m_uploaderLabel->setFont(metaFont);
+    m_uploaderLabel->setStyleSheet("color: #777;");
+    m_uploaderLabel->setWordWrap(true);
+    metaLayout->addWidget(m_uploaderLabel, 1);
+
+    infoLayout->addLayout(metaLayout);
 
     m_descLabel = new QLabel();
+    QFont descFont = m_descLabel->font();
+    descFont.setPointSize(descFont.pointSize());
+    m_descLabel->setFont(descFont);
     m_descLabel->setWordWrap(true);
-    m_descLabel->setMaximumHeight(60);
+    m_descLabel->setMaximumHeight(100);
     m_descLabel->setStyleSheet("color: #666;");
     infoLayout->addWidget(m_descLabel);
 
     // Save-to preview
     m_saveToLabel = new QLabel();
+    QFont saveFont = m_saveToLabel->font();
+    saveFont.setPointSize(saveFont.pointSize());
+    m_saveToLabel->setFont(saveFont);
     m_saveToLabel->setStyleSheet(
-        "QLabel { color: #1565c0; font-weight: bold; padding: 6px 8px; "
-        "background-color: #e3f2fd; border-radius: 4px; }");
+        "QLabel { color: #0d47a1; font-weight: bold; padding: 10px 12px; "
+        "background-color: #e3f2fd; border-radius: 6px; }");
     m_saveToLabel->setWordWrap(true);
     m_saveToLabel->hide();
     infoLayout->addWidget(m_saveToLabel);
@@ -171,45 +210,76 @@ void DownloadDialog::buildUi()
     auto* optionsGroup = new QGroupBox(tr("Download Options"));
     optionsGroup->hide();
     optionsGroup->setObjectName("optionsGroup");
+    QFont groupFont = optionsGroup->font();
+    groupFont.setPointSize(groupFont.pointSize() + 1);
+    groupFont.setBold(true);
+    optionsGroup->setFont(groupFont);
     auto* optionsLayout = new QFormLayout(optionsGroup);
+    optionsLayout->setSpacing(12);
+    optionsLayout->setContentsMargins(16, 20, 16, 16);
+    optionsLayout->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     // Quality
     m_qualityCombo = new QComboBox();
-    m_qualityCombo->setMinimumWidth(200);
+    m_qualityCombo->setMinimumWidth(340);
+    m_qualityCombo->setMinimumHeight(36);
+    QFont comboFont = m_qualityCombo->font();
+    comboFont.setPointSize(comboFont.pointSize() + 1);
+    m_qualityCombo->setFont(comboFont);
     optionsLayout->addRow(tr("Video quality:"), m_qualityCombo);
 
     // Audio
     m_audioCombo = new QComboBox();
-    m_audioCombo->setMinimumWidth(200);
+    m_audioCombo->setMinimumWidth(340);
+    m_audioCombo->setMinimumHeight(36);
+    m_audioCombo->setFont(comboFont);
     optionsLayout->addRow(tr("Audio format:"), m_audioCombo);
 
     // Subtitles
     m_subtitleCombo = new QComboBox();
-    m_subtitleCombo->setMinimumWidth(200);
+    m_subtitleCombo->setMinimumWidth(340);
+    m_subtitleCombo->setMinimumHeight(36);
+    m_subtitleCombo->setFont(comboFont);
     m_subtitleCombo->addItem(tr("None"), QString());
     optionsLayout->addRow(tr("Subtitles:"), m_subtitleCombo);
 
     // Checkboxes
+    auto* cbLayout = new QVBoxLayout();
+    cbLayout->setSpacing(4);
+
     m_audioOnlyCheck = new QCheckBox(tr("Audio only"));
-    optionsLayout->addRow(m_audioOnlyCheck);
+    QFont cbFont = m_audioOnlyCheck->font();
+    cbFont.setPointSize(cbFont.pointSize() + 1);
+    m_audioOnlyCheck->setFont(cbFont);
+    cbLayout->addWidget(m_audioOnlyCheck);
 
     m_embedMetadataCheck = new QCheckBox(tr("Embed metadata"));
+    m_embedMetadataCheck->setFont(cbFont);
     m_embedMetadataCheck->setChecked(true);
-    optionsLayout->addRow(m_embedMetadataCheck);
+    cbLayout->addWidget(m_embedMetadataCheck);
+
+    optionsLayout->addRow(tr("Options:"), cbLayout);
 
     mainLayout->addWidget(optionsGroup);
 
     // ── Download path section ───────────────────────────────────────────
     auto* pathGroup = new QGroupBox(tr("Download Location"));
+    pathGroup->setFont(groupFont);
     auto* pathLayout = new QHBoxLayout(pathGroup);
+    pathLayout->setContentsMargins(16, 20, 16, 16);
+    pathLayout->setSpacing(10);
 
     m_pathField = new QLineEdit();
-    m_pathField->setMinimumHeight(28);
-    m_pathField->setReadOnly(true); /* prevent typos; use Browse button */
-    pathLayout->addWidget(m_pathField);
+    QFont pathFont = m_pathField->font();
+    pathFont.setPointSize(pathFont.pointSize() + 1);
+    m_pathField->setFont(pathFont);
+    m_pathField->setMinimumHeight(40);
+    pathLayout->addWidget(m_pathField, 1);
 
     m_browseBtn = new QPushButton(tr("Browse..."));
-    m_browseBtn->setMinimumHeight(28);
+    m_browseBtn->setMinimumHeight(40);
+    m_browseBtn->setMinimumWidth(100);
+    m_browseBtn->setCursor(Qt::PointingHandCursor);
     pathLayout->addWidget(m_browseBtn);
 
     mainLayout->addWidget(pathGroup);
@@ -218,21 +288,30 @@ void DownloadDialog::buildUi()
 
     // ── Footer buttons ───────────────────────────────────────────────────
     auto* footerLayout = new QHBoxLayout();
+    footerLayout->setSpacing(8);
     footerLayout->addStretch();
 
     auto* cancelBtn = new QPushButton(tr("Cancel"));
-    cancelBtn->setMinimumHeight(32);
+    cancelBtn->setMinimumHeight(42);
+    cancelBtn->setMinimumWidth(100);
+    QFont footerFont = cancelBtn->font();
+    footerFont.setPointSize(footerFont.pointSize() + 1);
+    cancelBtn->setFont(footerFont);
+    cancelBtn->setCursor(Qt::PointingHandCursor);
     footerLayout->addWidget(cancelBtn);
     connect(cancelBtn, &QPushButton::clicked, this, &DownloadDialog::onCancelClicked);
 
     m_downloadBtn = new QPushButton(tr("Download"));
-    m_downloadBtn->setMinimumHeight(32);
+    m_downloadBtn->setMinimumHeight(42);
+    m_downloadBtn->setMinimumWidth(130);
+    m_downloadBtn->setFont(footerFont);
     m_downloadBtn->setEnabled(false);
+    m_downloadBtn->setCursor(Qt::PointingHandCursor);
     m_downloadBtn->setStyleSheet(
         "QPushButton { background-color: #2e7d32; color: white; font-weight: bold; "
-        "padding: 6px 20px; border-radius: 4px; }"
+        "padding: 8px 28px; border-radius: 4px; }"
         "QPushButton:hover { background-color: #388e3c; }"
-        "QPushButton:disabled { background-color: #ccc; color: #888; }");
+        "QPushButton:disabled { background-color: #bbb; color: #eee; }");
     footerLayout->addWidget(m_downloadBtn);
     connect(m_downloadBtn, &QPushButton::clicked, this, &DownloadDialog::onDownloadClicked);
 

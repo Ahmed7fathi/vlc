@@ -95,3 +95,19 @@ URLs containing `?list=...` (playlist parameter) caused yt-dlp to enumerate the 
 Fixed page loading failure on the Downloads tab caused by incorrect `ColorContext` declaration pattern (`readonly property` instead of child element) and complex QML component usage (`Widgets.ActionButtonPrimary`, `Widgets.IconButton` with animations). Replaced with simpler `IconLabel + MouseArea` pattern and removed animations.
 
 - `modules/gui/qt/maininterface/qml/DownloadsDisplay.qml` — Simplified: removed Popup, replaced IconButton with IconLabel+MouseArea, removed animations
+
+#### Download Media Dialog UI/UX improvements
+
+Redesigned the Download Media dialog for better usability: increased default size from 680×680 to 880×900 with proportional internal spacing. Larger fonts, taller controls, better margins, and a cleaner layout throughout.
+
+- `modules/gui/qt/downloader/bridge/download_dialog.cpp` — Complete dialog redesign:
+  - Size: 760×720 → 880×900 (min 720×680 → 880×900)
+  - Margins: 24,20,24,20 → 32,28,32,28; spacing: 16 → 20px
+  - Title font: +8pt → +10pt bold
+  - URL field: 40px → 44px tall, font +2pt
+  - Analyze button: 40×100 → 44×120, blue styled
+  - Combo boxes: 280×32 → 340×36, font +1pt
+  - Footer buttons: 38×90 → 42×100 / 38×110 → 42×130
+  - Metadata row: horizontal layout (Duration · Uploader)
+  - Path field: editable (was read-only)
+  - Pointing hand cursors on all buttons
