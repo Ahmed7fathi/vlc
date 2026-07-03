@@ -62,9 +62,9 @@ ProcessRunner::Result ProcessRunner::run(const Options& opts, CancellationToken*
 {
     ProcessRunner runner;
     if (!runner.start(opts))
-        return Result{ .succeeded = false };
+        return Result{};
 
-    Result result;
+    Result result = {};
 
     /* Read stdout */
     if (opts.captureStdout)
@@ -376,9 +376,48 @@ void ProcessRunner::cancel()
     if (!m_running || m_pid < 0)
         return;
 
-    /* Kill the child process */
-    kill(m_pid, SIGTERM);
+    pid_t pid = m_pid;
     m_running = false;
+
+    /* Send SIGTERM first — gives the process a chance to clean up */
+    kill(pid, SIGTERM);
+
+    /* Wait briefly for the process to exit cleanly.
+     * Using a short timeout avoids blocking the UI thread while still
+     * ensuring the process is actually dead before we return.
+     * If the process doesn't exit within the timeout, send SIGKILL. */
+    const int maxWaitMs = 3000; /* 3 seconds */
+    const int pollIntervalMs = 50;
+    int waited = 0;
+
+    while (waited < maxWaitMs)
+    {
+        int status;
+        pid_t result = waitpid(pid, &status, WNOHANG);
+        if (result == pid)
+        {
+            /* Process exited — we're done */
+            m_pid = -1;
+            return;
+        }
+        if (result == -1 && errno != EINTR)
+        {
+            /* waitpid failed (e.g., ECHILD — already reaped) — stop trying */
+            break;
+        }
+
+        struct timespec ts = { 0, pollIntervalMs * 1000000 };
+        nanosleep(&ts, nullptr);
+        waited += pollIntervalMs;
+    }
+
+    /* Timeout — process didn't exit cleanly. Force kill. */
+    kill(pid, SIGKILL);
+
+    /* Wait for the forced kill to complete */
+    int status;
+    waitpid(pid, &status, 0);
+    m_pid = -1;
 }
 
 /* static */

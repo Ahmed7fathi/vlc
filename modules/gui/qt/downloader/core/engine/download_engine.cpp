@@ -135,6 +135,24 @@ void DownloadEngine::runThread()
 
     if (!downloadResult.succeeded)
     {
+        /* Check if the failure was due to cancellation */
+        if (m_token->isCancelled())
+        {
+            m_task->setError("Download cancelled");
+            m_task->transitionTo(DownloadTask::State::Cancelled);
+            m_eventBus.publish(TaskStateChanged{
+                m_task, DownloadTask::State::Downloading,
+                DownloadTask::State::Cancelled});
+            m_eventBus.publish(DownloadFailed{
+                m_task, "Download cancelled by user"});
+
+            if (m_vlcObj)
+                msg_Dbg(m_vlcObj, "DownloadEngine: download cancelled by user");
+
+            m_running = false;
+            return;
+        }
+
         std::string error = downloadResult.errorMessage;
         m_task->setError(error);
         m_task->transitionTo(DownloadTask::State::Failed);
@@ -149,8 +167,17 @@ void DownloadEngine::runThread()
 
     if (m_token->isCancelled())
     {
-        m_task->setError("Download cancelled after completion");
+        m_task->setError("Download cancelled after download");
         m_task->transitionTo(DownloadTask::State::Cancelled);
+        m_eventBus.publish(TaskStateChanged{
+            m_task, DownloadTask::State::Downloading,
+            DownloadTask::State::Cancelled});
+        m_eventBus.publish(DownloadFailed{
+            m_task, "Download cancelled by user"});
+
+        if (m_vlcObj)
+            msg_Dbg(m_vlcObj, "DownloadEngine: download cancelled by user");
+
         m_running = false;
         return;
     }

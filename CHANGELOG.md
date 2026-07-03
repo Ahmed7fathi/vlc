@@ -111,3 +111,12 @@ Redesigned the Download Media dialog for better usability: increased default siz
   - Metadata row: horizontal layout (Duration · Uploader)
   - Path field: editable (was read-only)
   - Pointing hand cursors on all buttons
+
+#### Downloader: Cancel button not killing the yt-dlp process
+
+Fixed the cancel button so it properly terminates the yt-dlp process. The `ProcessRunner::cancel()` method only sent `SIGTERM` without waiting or reaping the child — some processes (or their sub-processes) could survive `SIGTERM`. The `DownloadEngine` also transitioned cancelled tasks to `Failed` state instead of `Cancelled`.
+
+- `modules/gui/qt/downloader/core/utils/process_runner.cpp` — `cancel()` now sends SIGTERM, polls with `waitpid(WNOHANG)` for 3 seconds, then escalates to SIGKILL + blocking `waitpid()` to fully reap the child
+- `modules/gui/qt/downloader/core/engine/download_engine.cpp` — In `runThread()`, check cancellation FIRST when the strategy fails; transition to `Cancelled` state instead of `Failed`
+
+  - Fixed compiler warning (missing field initializers in `Result` struct)
