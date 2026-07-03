@@ -42,9 +42,9 @@ namespace downloader {
  *     │            │            │            │           │     │
  *     └──► Cancelled           │            │           │     └──► Queued
  *                               │            │           │
- *                               └──► Cancelled           ├──► PostProcessing
+ *                               └──► Cancelled           ├──► PostProcessing ──► Completed
  *                                                         │     │
- *                                                         │     └──► Completed
+ *                                                         ├──► Completed  (no post-processing)
  *                                                         │           │
  *                                                         ├──► Cancelled
  *                                                         └──► Failed

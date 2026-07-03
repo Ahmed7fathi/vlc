@@ -106,6 +106,7 @@ bool DownloadStateMachine::isValidTransition(State from, State to)
 
         case S::Downloading:
             return to == S::Paused || to == S::PostProcessing
+                || to == S::Completed
                 || to == S::Failed || to == S::Cancelled;
 
         case S::Paused:

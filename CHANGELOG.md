@@ -73,3 +73,25 @@ Enhanced the seek bar (`SliderBar.qml`) with a modern, interactive design:
 - **Position latching** — The popup's `x` position latches to the last hover position on exit, preventing it from snapping to the playback cursor during fade-out.
 - **No exit transition** — The popup disappears instantly when the mouse leaves, avoiding any visible position snap.
 - **Debounce timers** — 150ms debounce on hover thumbnail requests, 50ms debounce on QML URL updates to prevent rapid flickering.
+
+### Fixed
+
+#### Downloader: Task stuck in "Downloading" state after completion
+
+Fixed a critical bug where download tasks remained stuck in the "Downloading" state indefinitely after the download completed. The `DownloadStateMachine` rejected the direct `Downloading → Completed` transition because it required a mandatory stop at `PostProcessing`. When the processing pipeline was empty (no FFmpeg steps), the `DownloadEngine` jumped directly to `Completed`, but the state machine silently returned `false`, leaving the task permanently in `Downloading`.
+
+- `modules/gui/qt/downloader/models/download_state_machine.cpp` — Added `S::Completed` to valid transitions from `S::Downloading`
+- `modules/gui/qt/downloader/bridge/download_task_model.cpp` — Added progress roles to `onStateChanged` dataChanged signal
+
+#### Downloader: Playlist URLs cause yt-dlp to analyze forever
+
+URLs containing `?list=...` (playlist parameter) caused yt-dlp to enumerate the entire playlist instead of analyzing just the single video. Added `--no-playlist` flag to yt-dlp arguments in both the analysis and download phases.
+
+- `modules/gui/qt/downloader/providers/youtube_provider.cpp` — Added `--no-playlist` to analysis args
+- `modules/gui/qt/downloader/core/strategies/ytdlp_strategy.cpp` — Added `--no-playlist` to download args
+
+#### Downloader: Downloads page glitching when switching tabs
+
+Fixed page loading failure on the Downloads tab caused by incorrect `ColorContext` declaration pattern (`readonly property` instead of child element) and complex QML component usage (`Widgets.ActionButtonPrimary`, `Widgets.IconButton` with animations). Replaced with simpler `IconLabel + MouseArea` pattern and removed animations.
+
+- `modules/gui/qt/maininterface/qml/DownloadsDisplay.qml` — Simplified: removed Popup, replaced IconButton with IconLabel+MouseArea, removed animations

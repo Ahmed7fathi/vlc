@@ -227,19 +227,12 @@ void DownloadTaskModel::addTask(std::shared_ptr<DownloadTask> task)
     if (!task)
         return;
 
-    fprintf(stderr, "[DownloadTaskModel] addTask: id=%s, title=%s, current size=%zu\n",
-            task->id().c_str(),
-            (task->mediaInfo() ? task->mediaInfo()->title.c_str() : "(no media info)"),
-            m_tasks.size());
-
     beginInsertRows({}, static_cast<int>(m_tasks.size()),
                     static_cast<int>(m_tasks.size()));
     m_tasks.push_back(std::move(task));
     endInsertRows();
 
     emit countChanged();
-
-    fprintf(stderr, "[DownloadTaskModel] addTask done, new size=%zu\n", m_tasks.size());
 }
 
 void DownloadTaskModel::removeTask(const std::string& taskId)
@@ -306,7 +299,9 @@ void DownloadTaskModel::onStateChanged(const std::string& taskId)
     QModelIndex idx = index(row);
     emit dataChanged(idx, idx, {
         StateRole, StateNameRole, IsActiveRole, IsTerminalRole,
-        ErrorMessageRole, OutputPathRole
+        ErrorMessageRole, OutputPathRole,
+        ProgressRole, SpeedRole, EtaRole,
+        DownloadedBytesRole, TotalBytesRole
     });
 }
 

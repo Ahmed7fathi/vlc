@@ -134,6 +134,9 @@ YtdlpStrategy::ArgList YtdlpStrategy::buildArgs(
     args.push_back("--console-title");
     args.push_back("--no-quiet");
 
+    /* Ignore playlist URLs (e.g. ?list=...) — only download the single video */
+    args.push_back("--no-playlist");
+
     /* The URL */
     args.push_back(task.url().c_str());
     args.push_back(nullptr);

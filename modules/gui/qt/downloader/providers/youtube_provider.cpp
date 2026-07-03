@@ -117,6 +117,7 @@ void YoutubeProvider::analyze(std::shared_ptr<DownloadTask> task,
         "--no-download",
         "--no-warnings",
         "--skip-download",
+        "--no-playlist",   /* Prevent yt-dlp from processing entire playlists */
         "--",
         task->url().c_str()
     };
