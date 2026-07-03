@@ -120,6 +120,18 @@ NativeMenu {
                 return (dataList.length === 1)
                         && !(dataList[0][idDataRole].hasParent())
             }
+        },{
+            "separator": true,
+            "visible": function(dataList, options, indexes) {
+                // Only show when the media has a URL (non-local)
+                return _urlAvailable(dataList)
+            }
+        },{
+            "text": qsTr("Download Media"),
+            "action": _downloadMedia,
+            "visible": function(dataList, options, indexes) {
+                return _urlAvailable(dataList)
+            }
         }
     ]
 
@@ -252,6 +264,26 @@ NativeMenu {
         const index = options?.["information"] ?? null
         console.assert(Helpers.isInteger(index))
         showMediaInformation(index)
+    }
+
+    function _urlAvailable(dataList) {
+        if (dataList.length !== 1)
+            return false
+        const mrl = dataList[0]["mrl"] ?? ""
+        // Only show download for http/https URLs (not local files)
+        return mrl.toString().startsWith("http://") ||
+               mrl.toString().startsWith("https://")
+    }
+
+    function _downloadMedia(dataList, options, indexes) {
+        if (dataList.length === 0)
+            return
+        const mrl = dataList[0]["mrl"]
+        if (mrl) {
+            // Open the DownloadDialog with the media URL pre-filled.
+            // The dialog handles analysis, format selection, and confirmation.
+            DialogsProvider.openDownloadDialogWithUrl(mrl.toString())
+        }
     }
 
     function _playerOptions(options, extraOptions) {

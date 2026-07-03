@@ -30,6 +30,8 @@ import VLC.Playlist
 import VLC.Widgets as Widgets
 import VLC.Menus as Menus
 import VLC.Util
+import VLC.Downloader
+import VLC.Dialogs
 
 T.ToolBar {
     id: root
@@ -402,6 +404,49 @@ T.ToolBar {
                             visible: MainCtx.search.available
                             height: VLCStyle.bannerButton_height
                             buttonWidth: VLCStyle.bannerButton_width
+                        }
+
+                        Widgets.IconToolButton {
+                            id: downloadBtn
+
+                            font.pixelSize: VLCStyle.icon_banner
+                            text: VLCIcons.eject
+                            description: qsTr("Download Media")
+
+                            width: VLCStyle.bannerButton_width
+                            height: VLCStyle.bannerButton_height
+
+                            highlighted: DownloaderController.hasActiveDownloads
+
+                            onClicked: {
+                                DialogsProvider.openDownloadDialog()
+                            }
+
+                            // Compact active download count badge
+                            Rectangle {
+                                id: badge
+                                anchors.top: parent.top
+                                anchors.right: parent.right
+                                anchors.topMargin: 0
+                                anchors.rightMargin: 0
+
+                                width: Math.max(VLCStyle.dp(14, VLCStyle.scale),
+                                                badgeText.implicitWidth + VLCStyle.margin_xxxsmall)
+                                height: VLCStyle.dp(14, VLCStyle.scale)
+                                radius: height / 2
+
+                                visible: DownloaderController.activeCount > 0
+                                color: theme.accent
+
+                                Widgets.CaptionLabel {
+                                    id: badgeText
+                                    anchors.centerIn: parent
+                                    text: DownloaderController.activeCount
+                                    color: "white"
+                                    font.pixelSize: VLCStyle.fontSize_xsmall
+                                    font.bold: true
+                                }
+                            }
                         }
 
                         Widgets.IconToolButton {

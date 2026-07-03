@@ -207,7 +207,11 @@ public slots:
     void openDiscDialog();
     void openFileDialog();
     void openUrlDialog();
+    void openDownloadDialog();
     void openNetDialog();
+
+    /** @brief Open the download dialog with a specific URL (e.g. from context menu). */
+    Q_INVOKABLE void openDownloadDialogWithUrl(const QString& url);
     void openCaptureDialog();
 
     void PLOpenDir();

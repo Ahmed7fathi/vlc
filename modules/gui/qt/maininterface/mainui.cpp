@@ -58,6 +58,9 @@
 
 #include "dialogs/help/aboutmodel.hpp"
 #include "dialogs/dialogs_provider.hpp"
+
+#include "downloader/bridge/downloader_controller.hpp"
+#include "downloader/bridge/download_task_model.hpp"
 #include "dialogs/dialogs/dialogmodel.hpp"
 #ifdef UPDATE_CHECK
 #include "dialogs/help/help.hpp" // UpdateModel
@@ -248,6 +251,34 @@ void MainUI::registerQMLTypes()
         qmlRegisterSingletonInstance<TimelinePreviewController>(uri, versionMajor, versionMinor,
             "TimelinePreview",
             new TimelinePreviewController(m_intf, m_intf->p_mainPlayerController, m_mainCtx));
+
+        qmlRegisterModule(uri, versionMajor, versionMinor);
+        qmlProtectModule(uri, versionMajor);
+    }
+
+    /* VLC.Downloader module
+     *
+     * Using qmlRegisterSingletonType (lazy) instead of qmlRegisterSingletonInstance
+     * (eager) because the DownloaderController constructor accesses VLC subsystems
+     * (config, threads) that are not fully initialized during registerQMLTypes()
+     * which runs in the MainUI constructor. Eager creation caused the QML engine
+     * to fail entirely. */
+    {
+        const char* uri = "VLC.Downloader";
+        const int versionMajor = 1;
+        const int versionMinor = 0;
+
+        // @uri VLC.Downloader
+        {
+            static qt_intf_t* s_downloaderIntf = m_intf;
+            qmlRegisterSingletonType<vlc::downloader::DownloaderController>(
+                uri, versionMajor, versionMinor, "DownloaderController",
+                [](QQmlEngine*, QJSEngine*) -> QObject* {
+                    return new vlc::downloader::DownloaderController(s_downloaderIntf);
+                });
+        }
+        qmlRegisterUncreatableType<vlc::downloader::DownloadTaskModel>(
+            uri, versionMajor, versionMinor, "DownloadTaskModel", "");
 
         qmlRegisterModule(uri, versionMajor, versionMinor);
         qmlProtectModule(uri, versionMajor);

@@ -2238,6 +2238,25 @@ vlc_module_begin ()
     add_bool( "interact", true, INTERACTION_TEXT,
               INTERACTION_LONGTEXT )
 
+    /* Download options */
+    set_section( N_("Download"), NULL )
+    add_directory( "download-dir", NULL, N_("Download directory"),
+                   N_("Directory where downloaded media will be stored." ))
+    add_integer( "download-quality", 720, N_("Preferred video quality"),
+                 N_("Preferred video height for downloads, in pixels. "
+                    "Common values: 240, 360, 480, 720, 1080, 2160." ))
+        change_integer_range( 0, 4320 )
+    add_integer( "download-max-concurrent", 3,
+                 N_("Maximum concurrent downloads"),
+                 N_("Maximum number of downloads that can run simultaneously." ))
+        change_integer_range( 1, 10 )
+    add_bool( "download-embed-metadata", true,
+              N_("Embed metadata in downloads"),
+              N_("Embed title, artist and other metadata into downloaded media files." ))
+    add_bool( "download-embed-subs", false,
+              N_("Embed subtitles in downloads"),
+              N_("Embed subtitles into the output file when downloading." ))
+
     add_bool ( "stats", true, STATS_TEXT, STATS_LONGTEXT )
     add_integer( "stats-min-report-interval", 250,
                         STATSFREQ_TEXT, STATSFREQ_LONGTEXT );

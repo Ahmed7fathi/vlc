@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### YouTube Video Downloader (download videos directly from VLC)
+
+A new feature to download videos from YouTube and other supported sites directly from VLC's interface. Includes a complete C++ backend for media analysis, download orchestration, and a Qt UI for the interactive download workflow.
+
+- **New files (downloader framework):**
+  - `modules/gui/qt/downloader/models/` — Data models: `DownloadTask`, `DownloadStateMachine`, `DownloadSettings`, `MediaInfo`.
+  - `modules/gui/qt/downloader/core/` — Core engine: YouTube provider, yt-dlp strategy, download engine, download queue, orchestrator, event bus, process runner, JSON parser, file/temp managers, FFmpeg processor, processing pipeline.
+  - `modules/gui/qt/downloader/bridge/` — C++/QML bridge: `DownloaderController` (singleton), `DownloadTaskModel` (QAbstractListModel), `DownloadDialog` (QWidget-based dialog).
+  - `modules/gui/qt/downloader/qml/` — 7 QML UI files: `DownloadDialog.qml`, `QualitySelector.qml`, `AudioSelector.qml`, `SubtitleSelector.qml`, `ProgressDialog.qml`, `DownloadQueueView.qml`, `DownloadSettings.qml`.
+
+- **Modified files:**
+  - `modules/gui/qt/maininterface/mainui.cpp` — Registers `VLC.Downloader` QML module with lazy `DownloaderController` singleton and `DownloadTaskModel` type.
+  - `modules/gui/qt/maininterface/qml/MainDisplay.qml` — Adds "Downloads" tab entry pointing to the download queue page.
+  - `modules/gui/qt/maininterface/qml/BannerSources.qml` — Adds "Download Media" toolbar button with active-download count badge.
+  - `modules/gui/qt/maininterface/qml/DownloadsDisplay.qml` (new) — Self-contained download queue page with inline ListView, progress bars, state badges, action buttons, and progress dialog.
+  - `modules/gui/qt/dialogs/dialogs_provider.cpp/hpp` — Integrates download dialog opening from the toolbar button.
+  - `modules/gui/qt/meson.build` — Adds all downloader sources and the `VLC.Downloader` QML module to the build.
+  - `src/libvlc-module.c` — Adds VLC configuration variables for download path and settings.
+  - `test/modules/meson.build` — Adds test infrastructure.
+
+- **Build dependencies:** Requires `yt-dlp` (runtime) for media extraction and `ffmpeg` for optional post-processing.
+
 #### Timeline Thumbnail Preview (YouTube-style seek bar previews)
 
 A new feature that shows video thumbnail previews when hovering over the seek bar, similar to YouTube's timeline preview. Includes:

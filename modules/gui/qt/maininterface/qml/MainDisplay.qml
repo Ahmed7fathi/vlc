@@ -153,6 +153,12 @@ FocusScope {
             listed: false,
             name: "mlsettings",
             url: "qrc:///qt/qml/VLC/MediaLibrary/MLFoldersSettings.qml"
+        }, {
+            listed: true,
+            displayText: qsTr("Downloads"),
+            icon: VLCIcons.eject,
+            name: "downloads",
+            url: "qrc:///qt/qml/VLC/MainInterface/DownloadsDisplay.qml"
         }
     ]
 

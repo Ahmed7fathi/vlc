@@ -159,6 +159,9 @@ moc_headers = files(
     'util/thumbnail_cache.hpp',
     'util/thumbnail_generator.hpp',
     'util/timeline_preview_controller.hpp',
+    'downloader/bridge/downloader_controller.hpp',
+    'downloader/bridge/download_task_model.hpp',
+    'downloader/bridge/download_dialog.hpp',
     'widgets/native/animators.hpp',
     'widgets/native/csdthemeimage.hpp',
     'widgets/native/customwidgets.hpp',
@@ -534,6 +537,72 @@ qt_plugin_sources = files(
     'widgets/native/viewblockingrectangle.cpp',
     'widgets/native/viewblockingrectangle.hpp',
     'widgets/native/doubleclickignoringitem.hpp',
+
+    # Downloader framework
+    'downloader/models/media_info.hpp',
+    'downloader/models/download_state_machine.hpp',
+    'downloader/models/download_state_machine.cpp',
+    'downloader/models/download_task.hpp',
+    'downloader/models/download_task.cpp',
+    'downloader/models/download_settings.hpp',
+    'downloader/core/interfaces/i_media_provider.hpp',
+    'downloader/core/provider_registry.hpp',
+    'downloader/core/provider_registry.cpp',
+
+    # Downloader utilities (Phase 2)
+    'downloader/core/utils/cancellation_token.hpp',
+    'downloader/core/utils/process_runner.hpp',
+    'downloader/core/utils/process_runner.cpp',
+    'downloader/core/utils/json_parser.hpp',
+    'downloader/core/utils/json_parser.cpp',
+    'downloader/core/utils/file_manager.hpp',
+    'downloader/core/utils/file_manager.cpp',
+    'downloader/core/utils/temp_file_manager.hpp',
+    'downloader/core/utils/temp_file_manager.cpp',
+
+    # Downloader parsers (Phase 2)
+    'downloader/core/parsers/ytdlp_json_parser.hpp',
+    'downloader/core/parsers/ytdlp_json_parser.cpp',
+    'downloader/core/parsers/ytdlp_progress_parser.hpp',
+    'downloader/core/parsers/ytdlp_progress_parser.cpp',
+
+    # Downloader events (Phase 4)
+    'downloader/core/events/download_events.hpp',
+    'downloader/core/events/event_bus.hpp',
+
+    # Downloader orchestration (Phase 4)
+    'downloader/core/download_queue.hpp',
+    'downloader/core/download_queue.cpp',
+    'downloader/core/download_orchestrator.hpp',
+    'downloader/core/download_orchestrator.cpp',
+
+    # Downloader providers (Phase 3)
+    'downloader/providers/youtube_provider.hpp',
+    'downloader/providers/youtube_provider.cpp',
+
+    # Downloader strategies (Phase 5)
+    'downloader/core/interfaces/i_download_strategy.hpp',
+    'downloader/core/strategies/ytdlp_strategy.hpp',
+    'downloader/core/strategies/ytdlp_strategy.cpp',
+
+    # Downloader processors (Phase 5)
+    'downloader/core/interfaces/i_media_processor.hpp',
+    'downloader/core/processors/ffmpeg_processor.hpp',
+    'downloader/core/processors/ffmpeg_processor.cpp',
+    'downloader/core/processors/processing_pipeline.hpp',
+    'downloader/core/processors/processing_pipeline.cpp',
+
+    # Downloader engine (Phase 5)
+    'downloader/core/engine/download_engine.hpp',
+    'downloader/core/engine/download_engine.cpp',
+
+    # Downloader bridge (Phase 6)
+    'downloader/bridge/downloader_controller.hpp',
+    'downloader/bridge/downloader_controller.cpp',
+    'downloader/bridge/download_task_model.hpp',
+    'downloader/bridge/download_task_model.cpp',
+    'downloader/bridge/download_dialog.hpp',
+    'downloader/bridge/download_dialog.cpp',
 )
 
 if host_system == 'windows'
@@ -636,6 +705,7 @@ qml_modules += {
         'maininterface/qml/MainInterface.qml',
         'maininterface/qml/MainViewLoader.qml',
         'maininterface/qml/MainDisplay.qml',
+        'maininterface/qml/DownloadsDisplay.qml',
         'maininterface/qml/NoMedialibHome.qml',
         qml_maininterface_extra_files,
     ),
@@ -848,6 +918,21 @@ qml_modules += {
     ),
     'singletons': files(
         'util/qml/Helpers.qml',
+    ),
+}
+
+qml_modules += {
+    'name' : 'VLC.Downloader',
+    'target' : 'downloader',
+    'outdir' : 'VLC/Downloader',
+    'sources': files(
+        'downloader/qml/DownloadDialog.qml',
+        'downloader/qml/QualitySelector.qml',
+        'downloader/qml/AudioSelector.qml',
+        'downloader/qml/SubtitleSelector.qml',
+        'downloader/qml/ProgressDialog.qml',
+        'downloader/qml/DownloadQueueView.qml',
+        'downloader/qml/DownloadSettings.qml',
     ),
 }
 

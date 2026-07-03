@@ -31,6 +31,7 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 
 Key highlights:
 
+- **YouTube Video Downloader** — Download videos from YouTube and other supported sites directly from VLC's interface (VLC 4.0)
 - **Timeline Thumbnail Preview** — YouTube-style video thumbnail previews on the seek bar hover (VLC 4.0)
 
 # Platforms

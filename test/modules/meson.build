@@ -213,3 +213,45 @@ vlc_tests += {
     'link_with' : [libvlc, libvlccore],
     'module_depends' : vlc_plugins_targets.keys()
 }
+
+# ── Downloader unit tests ────────────────────────────────────────────────────
+
+vlc_tests += {
+    'name' : 'test_modules_downloader_state_machine',
+    'sources' : files(
+        '../downloader/test_state_machine.cpp',
+    ),
+    'suite' : ['modules', 'test_modules'],
+    'link_with' : [libvlccore],
+    'cpp_args' : ['-std=c++17'],
+}
+
+vlc_tests += {
+    'name' : 'test_modules_downloader_json_parser',
+    'sources' : files(
+        '../downloader/test_json_parser.cpp',
+    ),
+    'suite' : ['modules', 'test_modules'],
+    'link_with' : [libvlccore],
+    'cpp_args' : ['-std=c++17'],
+}
+
+vlc_tests += {
+    'name' : 'test_modules_downloader_progress_parser',
+    'sources' : files(
+        '../downloader/test_progress_parser.cpp',
+    ),
+    'suite' : ['modules', 'test_modules'],
+    'link_with' : [libvlccore],
+    'cpp_args' : ['-std=c++17'],
+}
+
+vlc_tests += {
+    'name' : 'test_modules_downloader_process_runner',
+    'sources' : files(
+        '../downloader/test_process_runner.cpp',
+    ),
+    'suite' : ['modules', 'test_modules'],
+    'link_with' : [libvlc, libvlccore],
+    'cpp_args' : ['-std=c++17'],
+}

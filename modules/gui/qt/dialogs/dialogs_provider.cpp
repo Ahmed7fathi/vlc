@@ -60,6 +60,9 @@
 
 #include <vlc_url.h>
 
+#include "../downloader/bridge/downloader_controller.hpp"
+#include "../downloader/bridge/download_dialog.hpp"
+
 #include <QEvent>
 #include <QApplication>
 #include <QSignalMapper>
@@ -68,6 +71,8 @@
 #include <QInputDialog>
 #include <QPointer>
 #include <QMessageBox>
+#include <QClipboard>
+#include <QRegularExpression>
 
 #define I_OP_DIR_WINTITLE I_DIR_OR_FOLDER( N_("Open Directory"), \
                                            N_("Open Folder") )
@@ -555,6 +560,28 @@ void DialogsProvider::openDiscDialog()
 void DialogsProvider::openNetDialog()
 {
     openDialog( OpenDialog::OPEN_NETWORK_TAB );
+}
+
+void DialogsProvider::openDownloadDialog()
+{
+    /* Check clipboard for URL */
+    QString clipText = QApplication::clipboard()->text();
+    QRegularExpression urlRe("(https?://[^\\s\\n\\r]+)");
+    auto match = urlRe.match(clipText);
+    QString url;
+    if (match.hasMatch())
+        url = match.captured(1);
+
+    /* Show the QML-based download dialog (modeless, with WA_DeleteOnClose) */
+    auto* dialog = new vlc::downloader::DownloadDialog(p_intf, url, nullptr);
+    dialog->show();
+}
+
+void DialogsProvider::openDownloadDialogWithUrl(const QString& url)
+{
+    /* Show the QML-based download dialog with the given URL */
+    auto* dialog = new vlc::downloader::DownloadDialog(p_intf, url, nullptr);
+    dialog->show();
 }
 void DialogsProvider::openCaptureDialog()
 {

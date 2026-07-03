@@ -870,6 +870,16 @@ SPrefsPanel::SPrefsPanel( qt_intf_t *_p_intf, QWidget *_parent,
 
             configBool( "qt-titlebar", ui.titleBarCheckBox );
 
+            /* DOWNLOAD options */
+            configGenericFile<DirectoryConfigControl>( "download-dir", ui.downloadDirLabel,
+                                 ui.downloadDir, ui.downloadDirBrowse );
+            configGeneric<IntegerConfigControl>( "download-quality", ui.downloadQualityLabel,
+                            ui.downloadQuality );
+            configGeneric<IntegerConfigControl>( "download-max-concurrent", ui.downloadMaxConcurrentLabel,
+                            ui.downloadMaxConcurrent );
+            configBool( "download-embed-metadata", ui.downloadEmbedMetadata );
+            configBool( "download-embed-subs", ui.downloadEmbedSubs );
+
             /* UPDATE options */
 #ifdef UPDATE_CHECK
             configBool( "qt-updates-notif", ui.updatesBox );

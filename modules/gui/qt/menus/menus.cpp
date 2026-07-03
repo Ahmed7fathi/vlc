@@ -192,6 +192,11 @@ void VLCMenuBar::FileMenu(qt_intf_t *p_intf, QMenu *menu)
     addDPStaticEntry( menu, qtr( "Open &Location from clipboard" ),
                       NULL, &DialogsProvider::openUrlDialog, "Ctrl+V" );
 
+    menu->addSeparator();
+
+    addDPStaticEntry( menu, qtr( "Download Media..." ),
+        ":/menu/network.svg", &DialogsProvider::openDownloadDialog, "" );
+
     if( mi && var_InheritBool( p_intf, "save-recentplay" ) && mi->hasMediaLibrary() )
     {
         MLRecentMediaModel* recentModel = new MLRecentMediaModel(nullptr);

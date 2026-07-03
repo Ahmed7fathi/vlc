@@ -69,3 +69,6 @@ sampels/
 
 # Ignore local development helper scripts
 run-vlc.sh
+
+# AI knowledge base
+.ai/
